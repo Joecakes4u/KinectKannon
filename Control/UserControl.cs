@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +17,10 @@ namespace KinectKannon.Control
         private static bool s_PanTiltTooFarUp = false;
         private static bool s_PanTiltTooFarLeft = false;
         private static bool s_PanTiltTooFarRight = false;
+        private static bool horizontal = true;
+
+// include library for key listener
+
         private static SpeechSynthesizer s_VoiceSynth = new SpeechSynthesizer();
         public const uint PAN_TILT_SPEED_LIMIT = 60;
         private const int XINPUT_RESTING_X = -1200;
@@ -40,7 +44,7 @@ namespace KinectKannon.Control
             PAN_UP,
             PAN_DOWN,
             TRACKING_SKELETAL,
-            TRACKING_MANUAL,
+            TRACKING_MANUAL, 
             TRACKING_AUDIBLE,
             SAFTEY_TOGGLE
         }
@@ -50,46 +54,58 @@ namespace KinectKannon.Control
         {
             try
             {
-                //Pan Up
-                if (key == System.Windows.Input.Key.Down && !s_PanTiltTooFarDown && mainWindow.TrackingMode == TrackingMode.MANUAL)
+             
+	// write Keylistener code here
+	// Comment out event listener for xbox controls
+		
+		   //Pan Up
+                if (horizontal == false)
                 {
-                    if (mainWindow.CannonYVelocity <= PAN_TILT_SPEED_LIMIT)
+                    if (key == System.Windows.Input.Key.Left && !s_PanTiltTooFarDown && mainWindow.TrackingMode == TrackingMode.MANUAL)
                     {
-                        mainWindow.CannonYVelocity += 20;
+                        if (mainWindow.CannonYVelocity <= PAN_TILT_SPEED_LIMIT)
+                        {
+                            mainWindow.CannonYVelocity += 10;
+                        }
+                        //set too far to false. if its stil too far the next key event handler will set to true
+                        s_PanTiltTooFarUp = false;
+                        panTilt.PanY(mainWindow.CannonYVelocity);
                     }
-                    //set too far to false. if its stil too far the next key event handler will set to true
-                    s_PanTiltTooFarUp = false;
-                    panTilt.PanY(mainWindow.CannonYVelocity);
+                    else if (key == System.Windows.Input.Key.Right && !s_PanTiltTooFarUp && mainWindow.TrackingMode == TrackingMode.MANUAL)
+                    {
+                        if (mainWindow.CannonYVelocity >= -1 * PAN_TILT_SPEED_LIMIT)
+                        {
+                            mainWindow.CannonYVelocity -= 10;
+                        }
+                        //set too far to false. if its stil too far the next key event handler will set to true
+                        s_PanTiltTooFarDown = false;
+                        panTilt.PanY(mainWindow.CannonYVelocity);
+                    }
+
                 }
-                else if (key == System.Windows.Input.Key.Up && !s_PanTiltTooFarUp && mainWindow.TrackingMode == TrackingMode.MANUAL)
+
+                else
                 {
-                    if (mainWindow.CannonYVelocity >= -1 * PAN_TILT_SPEED_LIMIT)
+                    if (key == System.Windows.Input.Key.Right && !s_PanTiltTooFarRight && mainWindow.TrackingMode == TrackingMode.MANUAL)
                     {
-                        mainWindow.CannonYVelocity -= 20;
+                        if (mainWindow.CannonXVelocity >= -1 * PAN_TILT_SPEED_LIMIT)
+                        {
+                            mainWindow.CannonXVelocity -= 10;
+                        }
+                        //set too far to false. if its stil too far the next key event handler will set to true
+                        s_PanTiltTooFarLeft = false;
+                        panTilt.PanX(mainWindow.CannonXVelocity);
                     }
-                    //set too far to false. if its stil too far the next key event handler will set to true
-                    s_PanTiltTooFarDown = false;
-                    panTilt.PanY(mainWindow.CannonYVelocity);
-                }
-                else if (key == System.Windows.Input.Key.Right && !s_PanTiltTooFarRight && mainWindow.TrackingMode == TrackingMode.MANUAL)
-                {
-                    if (mainWindow.CannonXVelocity >= -1 * PAN_TILT_SPEED_LIMIT)
+                    else if (key == System.Windows.Input.Key.Left && !s_PanTiltTooFarLeft && mainWindow.TrackingMode == TrackingMode.MANUAL)
                     {
-                        mainWindow.CannonXVelocity -= 20;
+                        if (mainWindow.CannonXVelocity <= PAN_TILT_SPEED_LIMIT)
+                        {
+                            mainWindow.CannonXVelocity += 10;
+                        }
+                        //set too far to false. if its stil too far the next key event handler will set to true
+                        s_PanTiltTooFarRight = false;
+                        panTilt.PanX(mainWindow.CannonXVelocity);
                     }
-                    //set too far to false. if its stil too far the next key event handler will set to true
-                    s_PanTiltTooFarLeft = false;
-                    panTilt.PanX(mainWindow.CannonXVelocity);
-                }
-                else if (key == System.Windows.Input.Key.Left && !s_PanTiltTooFarLeft && mainWindow.TrackingMode == TrackingMode.MANUAL)
-                {
-                    if (mainWindow.CannonXVelocity <= PAN_TILT_SPEED_LIMIT)
-                    {
-                        mainWindow.CannonXVelocity += 20;
-                    }
-                    //set too far to false. if its stil too far the next key event handler will set to true
-                    s_PanTiltTooFarRight = false;
-                    panTilt.PanX(mainWindow.CannonXVelocity);
                 }
             }
             //anything goes wrong, stop pantilt and crash the app
@@ -368,8 +384,19 @@ namespace KinectKannon.Control
                     s_VoiceSynth.SelectVoice("Microsoft Hazel Desktop");
                     s_VoiceSynth.SpeakAsync("System Disarmed!");
                 }
-                
+               
             }
+
+            if (key == Key.A)
+                {
+                    if (horizontal == true)
+                    {
+                        horizontal = false;
+                    }
+
+                    else
+                        horizontal = true;
+                }
             //MAYBE WE SHOULD PICK A HARDER TO PRESS KEY THAN THE SPACE BAR?
             if (key == Key.Space || (handHeldController.RightTrigger > 250 && handHeldController.LeftTrigger > 250))
             {
